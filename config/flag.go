@@ -20,7 +20,7 @@ func ParseFlags() error {
 	flag.Parse()
 
 	if Port < 1024 || Port > 65565 {
-		return fmt.Errorf("Port must be between 1024 and 65565")
+		return fmt.Errorf("port must be between 1024 and 65565")
 	}
 
 	standardDirs := []string{"triple-s", "cmd", "config", "internal", "pkg"}
