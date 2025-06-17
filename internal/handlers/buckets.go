@@ -3,6 +3,7 @@ package handlers
 import (
 	"log"
 	"net/http"
+	"triple-s/internal/services"
 	"triple-s/internal/utils"
 )
 
@@ -16,4 +17,6 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 		utils.ErrXMLResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
+	
+	err = services.CreateBucket(bucketName)
 }
