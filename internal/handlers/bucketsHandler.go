@@ -17,6 +17,14 @@ func CreateBucket(w http.ResponseWriter, r *http.Request) {
 		utils.ErrXMLResponse(w, http.StatusBadRequest, err.Error())
 		return
 	}
-	
-	err = services.CreateBucket(bucketName)
+
+	bucket, err := services.CreateBucket(bucketName)
+	if err != nil {
+		log.Printf("Fail: OP: %s. Error creating bucket: %s", op, err)
+		utils.ErrXMLResponse(w, http.StatusConflict, err.Error())
+		return
+	}
+
+	log.Printf("OP: %s. Bucket created successfully", op)
+	utils.WriteXMLResponse(w, http.StatusOK, bucket)
 }

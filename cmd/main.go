@@ -14,6 +14,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error parsing flags: ", err)
 	}
+
 	err = config.InitDir()
 	if err != nil {
 		log.Fatal("Initializing directory error: ", err)

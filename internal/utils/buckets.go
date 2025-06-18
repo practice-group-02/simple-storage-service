@@ -1,13 +1,9 @@
 package utils
 
 import (
-	"encoding/csv"
 	"fmt"
-	"os"
-	"path"
 	"regexp"
 	"strings"
-	"triple-s/config"
 	"triple-s/internal/models"
 )
 
@@ -21,7 +17,7 @@ func ValidateBucketName(name string) error {
 			return fmt.Errorf("forbidden character in bucket name '%s', character: '%s'", name, string(name[i]))
 		}
 		if i != 0 {
-			if (name[i] == '-' && name[i-1] == '-') || name[i] == '-' && name[i-1] == '.' || name[i] == '.' && name[i-1] == '-' || name[i] == '.' && name[i-1] == '.'{
+			if (name[i] == '-' && name[i-1] == '-') || name[i] == '-' && name[i-1] == '.' || name[i] == '.' && name[i-1] == '-' || name[i] == '.' && name[i-1] == '.' {
 				return fmt.Errorf("consecutive hyphens or periods (-- | .. | .- | -.) is not allowed for name of buckets")
 			}
 		}
@@ -49,21 +45,54 @@ func ValidateBucketName(name string) error {
 			return fmt.Errorf("bucket name must not end with the prohibited suffix: " + suffix)
 		}
 	}
-	
+
 	return nil
 }
 
+func RecordsToBuckets(records [][]string) (*models.Buckets, error) {
+	buckets := &models.Buckets{}
 
+	for i, record := range records {
+		if len(record) <= 3 {
+			return nil, fmt.Errorf("not enough fields in %d line", i+2)
+		}
+		bucket := models.Bucket{
+			Name:         record[0],
+			CreationTime: record[1],
+			LastModified: record[2],
+			Status:       record[3],
+		}
 
-func ReadBuckets() (*models.Buckets, error){
-	file, err := os.OpenFile(path.Join(config.Dir, "buckets.csv"), os.O_RDWR, 0755)
-	if err != nil {
-		return nil, err
+		buckets.Buckets = append(buckets.Buckets, bucket)
 	}
-	defer file.Close()
+	return buckets, nil
+}
 
-	reader := csv.NewReader(file)
-	records, err := reader.ReadAll()
-	
-	
+// func BucketsToRecords(buckets *models.Buckets) ([][]string, error) {
+// 	records := [][]string{}
+
+// 	for _, bucket := range buckets.Buckets {
+// 		record := []string{bucket.Name, bucket.CreationTime, bucket.LastModified, bucket.Status}
+// 		records = append(records, record)
+// 	}
+// }
+
+func GetBucketIdx(bucketName string, buckets *models.Buckets) (int, bool) {
+	for i, bucket := range buckets.Buckets {
+		if bucket.Name == bucketName {
+			return i, true
+		}
+	}
+
+	return -1, false
+}
+
+func ParseBucketInMetadata(metaFilePath string, bucket *models.Bucket) error {
+	record := []string{bucket.Name, bucket.CreationTime, bucket.LastModified, bucket.Status}
+
+	err := AppendToCSV(metaFilePath, record)
+	if err != nil {
+		return err
+	}
+	return nil
 }
