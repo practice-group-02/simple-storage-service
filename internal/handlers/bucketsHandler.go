@@ -73,13 +73,19 @@ func DeleteBucket(w http.ResponseWriter, r *http.Request) {
 		} else if statusCode == http.StatusConflict {
 			log.Printf("Bucket is not empty")
 			utils.ErrXMLResponse(w, statusCode, "Bucket is not empty")
+			return
 		} else {
 			log.Printf("Error deleting bucket: %s", err)
 			utils.ErrXMLResponse(w, http.StatusInternalServerError, "Oops... something went wrong")
 			return
 		}
 	}
+	if statusCode == http.StatusOK {
+		log.Printf("OP: %s. Bucket '%s' marked for delete!", op, bucketName)
+		utils.WriteXMLResponse(w, http.StatusOK, "Bucket marked for delete")
+		return
+	}
 
 	log.Printf("OP: %s. Bucket '%s' deleted successfully!", op, bucketName)
-	utils.WriteXMLResponse(w, http.StatusNoContent, "")
+	utils.WriteXMLResponse(w, http.StatusNoContent, nil)
 }

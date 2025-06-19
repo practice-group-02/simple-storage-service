@@ -2,6 +2,8 @@ package services
 
 import (
 	"fmt"
+	"log"
+	"net/http"
 	"os"
 	"path"
 	"time"
@@ -51,19 +53,48 @@ func GetAllBuckets() (*models.Buckets, error) {
 func DeleteBucket(bucketName string) (int, error) {
 	buckets, err := utils.ReadBucketsFromCSV()
 	if err != nil {
-		return 505, err
+		return http.StatusInternalServerError, err
+	}
+	if buckets == nil {
+   		return http.StatusInternalServerError, fmt.Errorf("failed to load buckets")
 	}
 
-	idx, found := utils.GetBucketIdx(bucketName, buckets)
-	if !found {
-		return 404, fmt.Errorf("Bucket not found")
+	idx, _ := utils.GetBucketIdx(bucketName, buckets)
+	if idx == -1 {
+		return http.StatusNotFound, fmt.Errorf("bucket not found")
 	}
 
-	path := path.Join(config.Dir, bucketName)
-	err := utils.BucketIsEmtpy(path)
-
-	err = utils.RemoveBucketFromCSV(bucketName)
-	if err != nil {
-		return 505, err
+	objectsPath := path.Join(config.Dir, bucketName, "objects.csv")
+	isEmpty, err := utils.BucketIsEmtpy(objectsPath)
+	if err != nil && err != utils.ErrBucketIsEmpty {
+		return http.StatusInternalServerError, err
 	}
+	err = nil
+
+	if !isEmpty {
+		return http.StatusConflict, err
+	}
+	if len(buckets.Buckets) <= idx {
+		log.Printf("something wrong")
+		return http.StatusInternalServerError, fmt.Errorf("problem with buckets length and idx")
+	}
+	bucket := buckets.Buckets[idx]
+	bucketPath := path.Join(config.Dir, bucketName)
+	if bucket.Status == "MARKED FOR DELETE" {
+		err = os.RemoveAll(bucketPath)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		} 
+		err = utils.RemoveBucketFromCSVByIdx(idx)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+	} else {
+		err = utils.MarkForDeleteBucketStatus(idx)
+		if err != nil {
+			return http.StatusInternalServerError, err
+		}
+		return http.StatusOK, nil
+	}
+	return http.StatusNoContent, nil
 }

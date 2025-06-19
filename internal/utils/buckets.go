@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/csv"
 	"fmt"
 	"os"
 	"path"
@@ -100,18 +101,73 @@ func ParseBucketInMetadata(metaFilePath string, bucket *models.Bucket) error {
 	return nil
 }
 
-func RemoveBucketFromCSV(bucketName string) error {
-	path := path.Join(config.Dir, bucketName)
-	file, err := os.OpenFile()
+func RemoveBucketFromCSVByIdx(idx int) error {
+	idx++
+	path := path.Join(config.Dir, "buckets.csv")
+	file, err := os.OpenFile(path, os.O_RDWR, 0755)
 	if err != nil {
 		return err
 	}
-	file.Close()
+	defer file.Close()
+
+	reader := csv.NewReader(file) 
+	
+	records, err := reader.ReadAll()
+	if err != nil {
+		return err
+	}
+	if _, err = file.Seek(0, 0); err != nil {
+        return err
+    }
+    if err = file.Truncate(0); err != nil {
+        return err
+    }
+	records = append(records[:idx], records[idx+1:]...)
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	writer.WriteAll(records)
+	
+	return nil
 }
 
-func BucketIsEmtpy(path string) error {
-	file, err := os.OpenFile(path, os.O_WRONLY, 0755)
+func BucketIsEmtpy(path string) (bool,error) {
+	records, err := ReadRecordsFromCSV(path)
+	if err != nil {
+		return false, err
+	}
+	if len(records) > 1 {
+		return false, nil
+	}
+	return true, ErrBucketIsEmpty
+}
+
+
+func MarkForDeleteBucketStatus(idx int) error {
+	idx++
+	path := path.Join(config.Dir, "buckets.csv")
+	file, err := os.OpenFile(path, os.O_RDWR, 0755)
 	if err != nil {
 		return err
 	}
+	defer file.Close()
+	
+	reader := csv.NewReader(file)
+	records, err := reader.ReadAll()
+	if err != nil {
+		return err
+	}
+	if _, err = file.Seek(0, 0); err != nil {
+        return err
+    }
+    if err = file.Truncate(0); err != nil {
+        return err
+    }
+	records[idx][3] = "MARKED FOR DELETE"
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	writer.WriteAll(records)
+	
+	return nil
 }
