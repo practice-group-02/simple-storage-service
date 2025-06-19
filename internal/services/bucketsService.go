@@ -1,6 +1,7 @@
 package services
 
 import (
+	"fmt"
 	"os"
 	"path"
 	"time"
@@ -38,7 +39,6 @@ func CreateBucket(bucketName string) (*models.Bucket, error) {
 	return newBucket, nil
 }
 
-
 func GetAllBuckets() (*models.Buckets, error) {
 	buckets, err := utils.ReadBucketsFromCSV()
 	if err != nil {
@@ -46,4 +46,24 @@ func GetAllBuckets() (*models.Buckets, error) {
 	}
 
 	return buckets, nil
+}
+
+func DeleteBucket(bucketName string) (int, error) {
+	buckets, err := utils.ReadBucketsFromCSV()
+	if err != nil {
+		return 505, err
+	}
+
+	idx, found := utils.GetBucketIdx(bucketName, buckets)
+	if !found {
+		return 404, fmt.Errorf("Bucket not found")
+	}
+
+	path := path.Join(config.Dir, bucketName)
+	err := utils.BucketIsEmtpy(path)
+
+	err = utils.RemoveBucketFromCSV(bucketName)
+	if err != nil {
+		return 505, err
+	}
 }

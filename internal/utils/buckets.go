@@ -2,8 +2,11 @@ package utils
 
 import (
 	"fmt"
+	"os"
+	"path"
 	"regexp"
 	"strings"
+	"triple-s/config"
 	"triple-s/internal/models"
 )
 
@@ -95,4 +98,20 @@ func ParseBucketInMetadata(metaFilePath string, bucket *models.Bucket) error {
 		return err
 	}
 	return nil
+}
+
+func RemoveBucketFromCSV(bucketName string) error {
+	path := path.Join(config.Dir, bucketName)
+	file, err := os.OpenFile()
+	if err != nil {
+		return err
+	}
+	file.Close()
+}
+
+func BucketIsEmtpy(path string) error {
+	file, err := os.OpenFile(path, os.O_WRONLY, 0755)
+	if err != nil {
+		return err
+	}
 }

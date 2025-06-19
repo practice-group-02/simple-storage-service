@@ -56,12 +56,30 @@ func ListAllBuckets(w http.ResponseWriter, r *http.Request) {
 }
 
 func DeleteBucket(w http.ResponseWriter, r *http.Request) {
+	op := "DELETE /{BucketName}"
 	bucketName := r.PathValue("BucketName")
 	if strings.TrimSpace(bucketName) == "" {
 		log.Printf("empty bucket name")
 		utils.ErrXMLResponse(w, http.StatusBadRequest, "bucket name is empty")
-		return 
+		return
 	}
 
-	bucket, err := services.DeleteBucket(bucketName)
+	statusCode, err := services.DeleteBucket(bucketName)
+	if err != nil {
+		if statusCode == http.StatusNotFound {
+			log.Printf("Bucket not found")
+			utils.ErrXMLResponse(w, statusCode, "bucket not found")
+			return
+		} else if statusCode == http.StatusConflict {
+			log.Printf("Bucket is not empty")
+			utils.ErrXMLResponse(w, statusCode, "Bucket is not empty")
+		} else {
+			log.Printf("Error deleting bucket: %s", err)
+			utils.ErrXMLResponse(w, http.StatusInternalServerError, "Oops... something went wrong")
+			return
+		}
+	}
+
+	log.Printf("OP: %s. Bucket '%s' deleted successfully!", op, bucketName)
+	utils.WriteXMLResponse(w, http.StatusNoContent, "")
 }
