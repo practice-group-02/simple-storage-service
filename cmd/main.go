@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"triple-s/config"
 	"triple-s/internal/routes"
+	"triple-s/internal/utils"
 )
 
 func main() {
@@ -15,7 +16,7 @@ func main() {
 		log.Fatal("Error parsing flags: ", err)
 	}
 
-	err = config.InitDir()
+	err = utils.InitDir()
 	if err != nil {
 		log.Fatal("Initializing directory error: ", err)
 	}

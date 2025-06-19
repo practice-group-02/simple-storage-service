@@ -1,7 +1,6 @@
 package services
 
 import (
-	"fmt"
 	"os"
 	"path"
 	"time"
@@ -19,7 +18,7 @@ func CreateBucket(bucketName string) (*models.Bucket, error) {
 
 	_, found := utils.GetBucketIdx(bucketName, buckets)
 	if found {
-		return nil, fmt.Errorf("bucket already exists")
+		return nil, utils.ErrBucketAlreadyExists
 	}
 
 	err = os.Mkdir(bucketPath, 0755)
@@ -37,4 +36,14 @@ func CreateBucket(bucketName string) (*models.Bucket, error) {
 	err = utils.ParseBucketInMetadata(path.Join(config.Dir, "buckets.csv"), newBucket)
 
 	return newBucket, nil
+}
+
+
+func GetAllBuckets() (*models.Buckets, error) {
+	buckets, err := utils.ReadBucketsFromCSV()
+	if err != nil {
+		return nil, err
+	}
+
+	return buckets, nil
 }

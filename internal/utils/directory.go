@@ -1,10 +1,11 @@
-package config
+package utils
 
 import (
 	"fmt"
 	"os"
 	"path"
 	"strings"
+	"triple-s/config"
 )
 
 var (
@@ -13,12 +14,12 @@ var (
 )
 
 func InitDir() error {
-	err := os.MkdirAll(Dir, 0755)
+	err := os.MkdirAll(config.Dir, 0755)
 	if err != nil {
 		return err
 	}
 
-	return WriteFileWithHeader(path.Join(Dir, "buckets.csv"), bucketsHeader)
+	return WriteFileWithHeader(path.Join(config.Dir, "buckets.csv"), bucketsHeader)
 }
 
 func WriteFileWithHeader(path string, header []string) error {
