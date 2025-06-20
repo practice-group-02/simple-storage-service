@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
 	"os"
@@ -17,9 +18,64 @@ func GetObjectIdx(objectName string, objects *models.Objects) int {
 	return -1
 }
 
-func RewriteExistingObjectCSV(objects *models.Objects, n int, object *models.Object) {
-	objectsCSVPath := path.Join()
-	objects.Objects[n] = *object
+func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Object, objectsCSVPath string) error {
+	objects.Objects[n] = object
+
+	file, err := os.OpenFile(objectsCSVPath, os.O_RDWR, 0755) 
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+
+	records := ObjectsToRecords(objects)
+	
+	if _, err = file.Seek(0,0); err != nil {
+		return fmt.Errorf("fail while seeking file beginning")
+	}
+
+	if err = file.Truncate(0); err != nil {
+		return fmt.Errorf("fail while truncating file")
+	}
+	err =  WriteFileWithHeader(objectsCSVPath, ObjectsHeader)
+	if err != nil {
+		return err
+	}
+
+	writer.WriteAll(records)
+	return nil
+}
+
+func WriteNewObjectInMetaData(object *models.Object, objectsCSVPath string) error {
+	file, err := os.OpenFile(objectsCSVPath, os.O_WRONLY|os.O_APPEND, 0755) 
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	record := []string{object.ObjectKey, object.ContentType, object.Size, object.LastModified}
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	writer.Write(record)
+	return nil
+}
+
+func ObjectsToRecords(objects *models.Objects) [][]string {
+	records := [][]string{}
+
+	for _, object := range objects.Objects {
+		record := make([]string, 4)
+		record[0] = object.ObjectKey
+		record[1] = object.ContentType
+		record[2] = object.Size
+		record[3] = object.LastModified
+
+		records = append(records, record)
+	}
+	return records
 }
 
 func RecordsToObjects(records [][]string) (*models.Objects, error) {
@@ -35,6 +91,9 @@ func RecordsToObjects(records [][]string) (*models.Objects, error) {
 			ContentType:  record[1],
 			Size:         record[2],
 			LastModified: record[3],
+		}
+		if object.ContentType == "" {
+			object.ContentType =  "NoContent"
 		}
 		objects.Objects = append(objects.Objects, object)
 	}

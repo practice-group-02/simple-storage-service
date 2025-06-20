@@ -9,8 +9,8 @@ import (
 )
 
 var (
-	bucketsHeader = []string{"Name", "CreationTime", "LastModifiedTime", "Status"}
-	objectsHeader = []string{"ObjectKey", "Size", "ContentType", "LastModified"}
+	BucketsHeader = []string{"Name", "CreationTime", "LastModifiedTime", "Status"}
+	ObjectsHeader = []string{"ObjectKey", "Size", "ContentType", "LastModified"}
 )
 
 func InitDir() error {
@@ -19,7 +19,7 @@ func InitDir() error {
 		return err
 	}
 
-	return WriteFileWithHeader(path.Join(config.Dir, "buckets.csv"), bucketsHeader)
+	return WriteFileWithHeader(path.Join(config.Dir, "buckets.csv"), BucketsHeader)
 }
 
 func WriteFileWithHeader(path string, header []string) error {
@@ -36,18 +36,17 @@ func WriteFileWithHeader(path string, header []string) error {
 
 	if fileStat.Size() == 0 {
 		_, err := file.WriteString(strings.Join(header, ",") + "\n")
-		fmt.Println("Header for 'buckets.csv' written successfully!")
 		if err != nil {
 			return err
 		}
 	} else {
 		var n int
 
-		for i := range bucketsHeader {
-			n += len(bucketsHeader[i])
+		for i := range header {
+			n += len(header[i])
 		}
 
-		n += len(bucketsHeader) - 1
+		n += len(header) - 1
 		buf := make([]byte, n)
 		file.Read(buf)
 		if string(buf) != strings.Join(header, ",") {

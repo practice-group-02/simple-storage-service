@@ -40,11 +40,14 @@ func CreateObject(bucketName, objectName string, r *http.Request) (*models.Objec
 		return nil, http.StatusInternalServerError, err
 	}
 
-	object := &models.Object{
+	object := models.Object{
 		ObjectKey:    objectName,
 		ContentType:  r.Header.Get("Content-Type"),
 		Size:         strconv.FormatInt(r.ContentLength, 10),
 		LastModified: time.Now().Format(time.RFC3339),
+	}
+	if object.ContentType == "" {
+		object.ContentType = "NoContent"
 	}
 
 	objectsCSVPath := path.Join(config.Dir, bucketName, "objects.csv")
@@ -55,6 +58,14 @@ func CreateObject(bucketName, objectName string, r *http.Request) (*models.Objec
 
 	objectIdx := utils.GetObjectIdx(objectName, objects)
 	if objectIdx != -1 {
-		err = utils.RewriteExistingObjectCSV(objects, objectIdx, object)
+		err = utils.RewriteExistingObjectCSV(objects, objectIdx, object, objectsCSVPath)
+		return nil, http.StatusInternalServerError, err
+	} else {
+		err = utils.WriteNewObjectInMetaData(&object, objectsCSVPath)
+		if err != nil {
+			return nil, http.StatusInternalServerError, err
+		}
 	}
+
+	return &object, http.StatusOK, nil
 }

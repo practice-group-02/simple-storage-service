@@ -83,5 +83,5 @@ func ReadObjectsFromCSV(path string) (*models.Objects, error) {
 }
 
 func CreateObjectsCSV(path string) error {
-	return WriteFileWithHeader(path, objectsHeader)
+	return WriteFileWithHeader(path, ObjectsHeader)
 }
