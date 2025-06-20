@@ -12,5 +12,7 @@ func NewRouter() *http.ServeMux {
 	mux.HandleFunc("GET /", handlers.ListAllBuckets)
 	mux.HandleFunc("DELETE /{BucketName}", handlers.DeleteBucket)
 
+	mux.HandleFunc("PUT /{BucketName}/{ObjectKey}", handlers.CreateObject)
+
 	return mux
 }
