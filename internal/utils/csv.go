@@ -8,15 +8,16 @@ import (
 	"triple-s/config"
 	"triple-s/internal/models"
 )
+
 func ReadRecordsFromCSV(path string) ([][]string, error) {
-	file, err := os.OpenFile(path, os.O_RDONLY, 0755) 
+	file, err := os.OpenFile(path, os.O_RDONLY, 0755)
 	if err != nil {
 		return nil, err
 	}
 	defer file.Close()
 
 	csvReader := csv.NewReader(file)
-	records, err:= csvReader.ReadAll()
+	records, err := csvReader.ReadAll()
 	if err != nil {
 		return records, err
 	}
