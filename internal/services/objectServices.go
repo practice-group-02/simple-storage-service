@@ -3,6 +3,7 @@ package services
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path"
@@ -58,6 +59,7 @@ func CreateObject(bucketName, objectName string, r *http.Request) (*models.Objec
 	}
 
 	objectIdx := utils.GetObjectIdx(objectName, objects)
+	log.Printf("HEREEE: %d", objectIdx)
 	if objectIdx != -1 {
 		err = utils.RewriteExistingObjectCSV(objects, objectIdx, object, objectsCSVPath)
 		return nil, http.StatusInternalServerError, err
@@ -84,3 +86,6 @@ func GetObjectsOfBucket(bucketName string) (*models.Objects, int, error) {
 
 	return objects, http.StatusOK, nil
 }
+
+
+func DeleteObject()

@@ -52,5 +52,10 @@ func GetObjectsOfBucket(w http.ResponseWriter, r *http.Request) {
 
 
 func DeleteObject(w http.ResponseWriter, r *http.Request) {
+	op := "DELETE /{BucketName}/{ObjectKey}"
+
+	bucketName := r.PathValue("BucketName")
+	objectKey := r.PathValue("ObjectKey")
+
 	
 }
