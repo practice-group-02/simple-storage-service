@@ -7,6 +7,7 @@ import (
 	"os"
 	"path"
 	"strconv"
+	"strings"
 	"time"
 	"triple-s/config"
 	"triple-s/internal/models"
@@ -68,4 +69,18 @@ func CreateObject(bucketName, objectName string, r *http.Request) (*models.Objec
 	}
 
 	return &object, http.StatusOK, nil
+}
+
+func GetObjectsOfBucket(bucketName string) (*models.Objects, int, error) {
+	if strings.TrimSpace(bucketName) == "" {
+		return nil, http.StatusBadRequest, fmt.Errorf("bucket name should not contain only spaces or be empty")
+	}
+
+	objectsPath := path.Join(config.Dir, bucketName, "objects.csv")
+	objects, err := utils.ReadObjectsFromCSV(objectsPath)
+	if err != nil {
+		return nil, http.StatusInternalServerError, err
+	}
+
+	return objects, http.StatusOK, nil
 }

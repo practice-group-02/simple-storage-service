@@ -21,7 +21,7 @@ func GetObjectIdx(objectName string, objects *models.Objects) int {
 func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Object, objectsCSVPath string) error {
 	objects.Objects[n] = object
 
-	file, err := os.OpenFile(objectsCSVPath, os.O_RDWR, 0755) 
+	file, err := os.Create(objectsCSVPath)
 	if err != nil {
 		return err
 	}
@@ -31,15 +31,8 @@ func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Obje
 	defer writer.Flush()
 
 	records := ObjectsToRecords(objects)
-	
-	if _, err = file.Seek(0,0); err != nil {
-		return fmt.Errorf("fail while seeking file beginning")
-	}
 
-	if err = file.Truncate(0); err != nil {
-		return fmt.Errorf("fail while truncating file")
-	}
-	err =  WriteFileWithHeader(objectsCSVPath, ObjectsHeader)
+	err = WriteFileWithHeader(objectsCSVPath, ObjectsHeader)
 	if err != nil {
 		return err
 	}
@@ -49,7 +42,7 @@ func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Obje
 }
 
 func WriteNewObjectInMetaData(object *models.Object, objectsCSVPath string) error {
-	file, err := os.OpenFile(objectsCSVPath, os.O_WRONLY|os.O_APPEND, 0755) 
+	file, err := os.OpenFile(objectsCSVPath, os.O_WRONLY|os.O_APPEND, 0755)
 	if err != nil {
 		return err
 	}
@@ -93,7 +86,7 @@ func RecordsToObjects(records [][]string) (*models.Objects, error) {
 			LastModified: record[3],
 		}
 		if object.ContentType == "" {
-			object.ContentType =  "NoContent"
+			object.ContentType = "NoContent"
 		}
 		objects.Objects = append(objects.Objects, object)
 	}
