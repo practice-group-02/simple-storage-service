@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"strings"
 	"triple-s/internal/models"
 )
 
@@ -20,7 +21,7 @@ func GetObjectIdx(objectName string, objects *models.Objects) int {
 
 func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Object, objectsCSVPath string) error {
 	objects.Objects[n] = object
-
+	
 	file, err := os.Create(objectsCSVPath)
 	if err != nil {
 		return err
@@ -31,8 +32,8 @@ func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Obje
 	defer writer.Flush()
 
 	records := ObjectsToRecords(objects)
-
-	err = WriteFileWithHeader(objectsCSVPath, ObjectsHeader)
+	
+	_, err = file.WriteString(strings.Join(ObjectsHeader, ",") + "\n")
 	if err != nil {
 		return err
 	}
@@ -75,7 +76,7 @@ func RecordsToObjects(records [][]string) (*models.Objects, error) {
 	objects := &models.Objects{}
 
 	for i, record := range records {
-		if len(records) <= 3 {
+		if len(record) <= 3 {
 			log.Printf("WARNING: not enough fields in %d line of objects.csv", i+2)
 			continue
 		}
@@ -95,7 +96,7 @@ func RecordsToObjects(records [][]string) (*models.Objects, error) {
 
 func ValidateObjectKey(key string) error {
 	if len(key) < 1 && len(key) > 1024 {
-		return fmt.Errorf("object key must be between 1 and 1024 characters.")
+		return fmt.Errorf("object key must be between 1 and 1024 characters")
 	}
 	re := regexp.MustCompile(`^[a-zA-Z0-9\-._*'()]+$`)
 
@@ -116,7 +117,7 @@ func ValidateObjectKey(key string) error {
 	invalidChars := []string{"\\", "{", "}", "^", "`", "]", "[", "\"", ">", "<", "#", "|", "%", "~"}
 	for _, invalidChar := range invalidChars {
 		if contains := stringContains(key, invalidChar); contains {
-			return fmt.Errorf("Object key contains invalid character: %s", invalidChar)
+			return fmt.Errorf("object key contains invalid character: %s", invalidChar)
 		}
 	}
 
