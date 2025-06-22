@@ -3,7 +3,6 @@ package services
 import (
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path"
@@ -59,7 +58,6 @@ func CreateObject(bucketName, objectName string, r *http.Request) (*models.Objec
 	}
 
 	objectIdx := utils.GetObjectIdx(objectName, objects)
-	log.Printf("HEREEE: %d", objectIdx)
 	if objectIdx != -1 {
 		err = utils.RewriteExistingObjectCSV(objects, objectIdx, object, objectsCSVPath)
 		return nil, http.StatusInternalServerError, err
@@ -88,4 +86,37 @@ func GetObjectsOfBucket(bucketName string) (*models.Objects, int, error) {
 }
 
 
-func DeleteObject()
+func DeleteObject(bucketName, objectKey string) (int, error) {
+	buckets, err := utils.ReadBucketsFromCSV()
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	bucketIdx, _ := utils.GetBucketIdx(bucketName, buckets)
+	if bucketIdx == -1 {
+		return http.StatusNotFound, fmt.Errorf("bucket %s not found", bucketName)
+	}
+
+	objectsCSVPath := path.Join(config.Dir, bucketName, "objects.csv")
+	objects, err := utils.ReadObjectsFromCSV(objectsCSVPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	objectIdx := utils.GetObjectIdx(objectKey, objects)
+	if objectIdx == -1 {
+		return http.StatusNotFound, fmt.Errorf("object %s not found", objectKey)
+	}
+
+	objects.Objects = append(objects.Objects[:objectIdx], objects.Objects[objectIdx+1:]...)
+	err = utils.RewriteObjectCSV(objects, objectsCSVPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+
+	objectPath := path.Join(config.Dir, bucketName, objectKey)
+	err = os.RemoveAll(objectPath)
+	if err != nil {
+		return http.StatusInternalServerError, err
+	}
+	return http.StatusNoContent, nil
+}

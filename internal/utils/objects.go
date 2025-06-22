@@ -19,6 +19,26 @@ func GetObjectIdx(objectName string, objects *models.Objects) int {
 	return -1
 }
 
+func RewriteObjectCSV(objects *models.Objects, objectsCSVPath string) error {
+	file, err := os.Create(objectsCSVPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	writer := csv.NewWriter(file)
+	defer writer.Flush()
+	records := ObjectsToRecords(objects)
+
+	_, err = file.WriteString(strings.Join(ObjectsHeader, ",") + "\n")
+	if err != nil {
+		return err
+	}
+
+	writer.WriteAll(records)
+	return nil
+}
+
 func RewriteExistingObjectCSV(objects *models.Objects, n int, object models.Object, objectsCSVPath string) error {
 	objects.Objects[n] = object
 	

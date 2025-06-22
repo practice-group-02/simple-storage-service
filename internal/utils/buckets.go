@@ -136,7 +136,7 @@ func BucketIsEmtpy(path string) (bool,error) {
 	if err != nil {
 		return false, err
 	}
-	if len(records) > 1 {
+	if len(records) > 1 { 
 		return false, nil
 	}
 	return true, ErrBucketIsEmpty
