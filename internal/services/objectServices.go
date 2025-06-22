@@ -107,14 +107,14 @@ func DeleteObject(bucketName, objectKey string) (int, error) {
 		return http.StatusNotFound, fmt.Errorf("object %s not found", objectKey)
 	}
 
-	objects.Objects = append(objects.Objects[:objectIdx], objects.Objects[objectIdx+1:]...)
-	err = utils.RewriteObjectCSV(objects, objectsCSVPath)
+	objectPath := path.Join(config.Dir, bucketName, objectKey)
+	err = os.RemoveAll(objectPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
 
-	objectPath := path.Join(config.Dir, bucketName, objectKey)
-	err = os.RemoveAll(objectPath)
+	objects.Objects = append(objects.Objects[:objectIdx], objects.Objects[objectIdx+1:]...)
+	err = utils.RewriteObjectCSV(objects, objectsCSVPath)
 	if err != nil {
 		return http.StatusInternalServerError, err
 	}
