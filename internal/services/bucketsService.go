@@ -71,8 +71,8 @@ func DeleteBucket(bucketName string) (int, error) {
 	}
 	err = nil
 
-	if !isEmpty {
-		return http.StatusConflict, err
+	if !isEmpty { 
+		return http.StatusConflict, fmt.Errorf("bucket %s is not empty", bucketName)
 	}
 	if len(buckets.Buckets) <= idx {
 		log.Printf("something wrong")

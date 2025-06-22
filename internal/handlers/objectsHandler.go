@@ -57,5 +57,18 @@ func DeleteObject(w http.ResponseWriter, r *http.Request) {
 	bucketName := r.PathValue("BucketName")
 	objectKey := r.PathValue("ObjectKey")
 
-	
+	httpStatus, err := services.DeleteObject(bucketName, objectKey)
+	if err != nil {
+		if httpStatus != http.StatusInternalServerError {
+			log.Printf("FAIL: OP: %s. Error deleting object: %s", op, err)
+			utils.ErrXMLResponse(w, httpStatus, err.Error())
+			return 
+		}else {
+			log.Printf("FAIL: OP: %s. Error deleting object: %s", op, err)
+			utils.ErrXMLResponse(w, http.StatusInternalServerError, "Oops... Something went wrong!")
+			return 
+		}
+	}
+	log.Printf("OP: %s. Object %s deleted successfully!", op, objectKey)
+	utils.WriteXMLResponse(w, http.StatusNoContent, nil)
 }
